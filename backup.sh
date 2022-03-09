@@ -47,8 +47,13 @@ case "${PG_BACKUP_ACTION:-dump}" in
     fi
     ;;
   restore)
-    echo "Downloading latest snapshot from $S3_BUCKET/$S3_PATH/$S3_FILENAME"
-    aws $AWS_ARGS s3 cp s3://$S3_BUCKET/$S3_PATH/$S3_FILENAME.backup dump.backup --acl public-read || exit 2
+    if [ -z "${PG_BACKUP_FILE}" ]; then
+      echo "Please set PG_BACKUP_FILE variable"
+      exit 1
+    fi
+
+    echo "Downloading latest snapshot from $PG_BACKUP_FILE"
+    curl -o dump.backup $PG_BACKUP_FILE
 
     echo "Restoring $POSTGRES_DB database"
     pg_restore -C -d $POSTGRES_DB $POSTGRES_HOST_OPTS dump.backup
