@@ -26,21 +26,31 @@ export AWS_DEFAULT_REGION=$S3_REGION
 export PGPASSWORD=$POSTGRES_PASSWORD
 POSTGRES_HOST_OPTS="-h $POSTGRES_HOST -p $POSTGRES_PORT -U $POSTGRES_USER $POSTGRES_EXTRA_OPTS"
 
-# TODO: check if database is fresh
+case "${PG_BACKUP_ACTION:-dump}" in
+  dump)
+    # TODO: check if database is fresh
+    echo "Snapshotting $POSTGRES_DB database"
+    pg_dump -Fc $POSTGRES_HOST_OPTS $POSTGRES_DB > dump.backup
 
-echo "Snapshotting $POSTGRES_DB database"
-pg_dump -Fc $POSTGRES_HOST_OPTS $POSTGRES_DB > dump.backup
+    echo "Rotating old snapshot"
+    aws $AWS_ARGS s3 cp s3://$S3_BUCKET/$S3_PATH/$S3_FILENAME.backup s3://$S3_BUCKET/$S3_PATH/$S3_FILENAME.old.backup --acl public-read || true
 
-echo "Rotating old snapshot"
-aws $AWS_ARGS s3 cp s3://$S3_BUCKET/$S3_PATH/$S3_FILENAME.backup s3://$S3_BUCKET/$S3_PATH/$S3_FILENAME.old.backup --acl public-read || true
+    echo "Uploading fresh snapshot to $S3_BUCKET/$S3_PATH/$S3_FILENAME"
+    cat dump.backup | aws $AWS_ARGS s3 cp - s3://$S3_BUCKET/$S3_PATH/$S3_FILENAME.backup --acl public-read || exit 2
 
-echo "Uploading fresh snapshot to $S3_BUCKET/$S3_PATH/$S3_FILENAME"
-cat dump.backup | aws $AWS_ARGS s3 cp - s3://$S3_BUCKET/$S3_PATH/$S3_FILENAME.backup --acl public-read || exit 2
+    echo "Snapshot uploaded successfully, removing local file"
+    rm dump.backup
 
-echo "Snapshot uploaded successfully, removing local file"
-rm dump.backup
+    if [ ! -z "$HEARTBEAT_URI" ]; then
+      echo "Sending heartbeat signal"
+      curl -m 10 --retry 5 $HEARTBEAT_URI
+    fi
+    ;;
+  restore)
+    echo "Downloading latest snapshot from $S3_BUCKET/$S3_PATH/$S3_FILENAME"
+    aws $AWS_ARGS s3 cp s3://$S3_BUCKET/$S3_PATH/$S3_FILENAME.backup dump.backup --acl public-read || exit 2
 
-if [ ! -z "$HEARTBEAT_URI" ]; then
-  echo "Sending heartbeat signal"
-  curl -m 10 --retry 5 $HEARTBEAT_URI
-fi
+    echo "Restoring $POSTGRES_DB database"
+    pg_restore -C -d $POSTGRES_DB $POSTGRES_HOST_OPTS dump.backup
+    ;;
+esac
