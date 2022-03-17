@@ -52,10 +52,14 @@ case "${PG_BACKUP_ACTION:-dump}" in
       exit 1
     fi
 
+    if [ -z "${PG_RESTORE_JOBS}" ]; then
+      PG_RESTORE_JOBS=1
+    fi
+
     echo "Downloading latest snapshot from $PG_BACKUP_FILE"
     curl -o dump.backup $PG_BACKUP_FILE
 
     echo "Restoring $POSTGRES_DB database"
-    pg_restore -c -C -d $POSTGRES_DB $POSTGRES_HOST_OPTS dump.backup
+    pg_restore -v -c -C -d $POSTGRES_DB $POSTGRES_HOST_OPTS -j $PG_RESTORE_JOBS dump.backup
     ;;
 esac
