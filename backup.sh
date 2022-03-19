@@ -11,23 +11,48 @@ if [ -z "$POSTGRES_PORT" ]; then
   POSTGRES_PORT="5432"
 fi
 
-if [ -z "${S3_ENDPOINT}" ]; then
-  AWS_ARGS=""
-else
-  AWS_ARGS="--endpoint-url ${S3_ENDPOINT}"
-fi
-
-# env vars needed for aws tools
-export AWS_ACCESS_KEY_ID=$S3_ACCESS_KEY_ID
-export AWS_SECRET_ACCESS_KEY=$S3_SECRET_ACCESS_KEY
-export AWS_DEFAULT_REGION=$S3_REGION
-
 # env vars needed for pg_dump
 export PGPASSWORD=$POSTGRES_PASSWORD
 POSTGRES_HOST_OPTS="-h $POSTGRES_HOST -p $POSTGRES_PORT -U $POSTGRES_USER $POSTGRES_EXTRA_OPTS"
 
 case "${PG_BACKUP_ACTION:-dump}" in
   dump)
+    if [ -z "${S3_ACCESS_KEY_ID}" ]; then
+      echo "Please set S3_ACCESS_KEY_ID"
+      exit 1
+    fi
+
+    if [ -z "${S3_SECRET_ACCESS_KEY}" ]; then
+      echo "Please set S3_SECRET_ACCESS_KEY"
+      exit 1
+    fi
+
+    if [ -z "${S3_BUCKET}" ]; then
+      echo "Please set S3_BUCKET"
+      exit 1
+    fi
+
+    if [ -z "${S3_PATH}" ]; then
+      echo "Please set S3_PATH"
+      exit 1
+    fi
+
+    if [ -z "${S3_FILENAME}" ]; then
+      echo "Please set S3_FILENAME"
+      exit 1
+    fi
+
+    if [ -z "${S3_ENDPOINT}" ]; then
+      AWS_ARGS=""
+    else
+      AWS_ARGS="--endpoint-url ${S3_ENDPOINT}"
+    fi
+
+    # env vars needed for aws tools
+    export AWS_ACCESS_KEY_ID=$S3_ACCESS_KEY_ID
+    export AWS_SECRET_ACCESS_KEY=$S3_SECRET_ACCESS_KEY
+    export AWS_DEFAULT_REGION=$S3_REGION
+
     # TODO: check if database is fresh
     echo "Snapshotting $POSTGRES_DB database"
     pg_dump -Fc $POSTGRES_HOST_OPTS $POSTGRES_DB > dump.backup
