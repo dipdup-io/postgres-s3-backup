@@ -19,6 +19,8 @@ backuper:
     - POSTGRES_DB=${POSTGRES_DB:-dipdup}
     - POSTGRES_HOST=${POSTGRES_HOST:-db}
     - POSTGRES_EXTRA_OPTS=${POSTGRES_EXTRA_OPTS}
+    - PG_BACKUP_ACTION=${PG_BACKUP_ACTION:-dump}  # or restore
+    - PG_BACKUP_FILE=${PG_BACKUP_FILE}  # for restore
     - HEARTBEAT_URI=${HEARTBEAT_URI}
     - SCHEDULE=${SCHEDULE}
 ```
