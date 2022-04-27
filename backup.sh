@@ -65,7 +65,7 @@ case "${PG_BACKUP_ACTION:-dump}" in
       PRIVATE_BACKUP=false
     fi
 
-    if [ $PRIVATE_BACKUP ]; then
+    if [ "$PRIVATE_BACKUP" = true ]; then
       cat dump.backup | aws $AWS_ARGS s3 cp - s3://$S3_BUCKET/$S3_PATH/$S3_FILENAME.backup || exit 2
     else
       cat dump.backup | aws $AWS_ARGS s3 cp - s3://$S3_BUCKET/$S3_PATH/$S3_FILENAME.backup --acl public-read || exit 2
