@@ -61,7 +61,15 @@ case "${PG_BACKUP_ACTION:-dump}" in
     aws $AWS_ARGS s3 cp s3://$S3_BUCKET/$S3_PATH/$S3_FILENAME.backup s3://$S3_BUCKET/$S3_PATH/$S3_FILENAME.old.backup --acl public-read || true
 
     echo "Uploading fresh snapshot to $S3_BUCKET/$S3_PATH/$S3_FILENAME"
-    cat dump.backup | aws $AWS_ARGS s3 cp - s3://$S3_BUCKET/$S3_PATH/$S3_FILENAME.backup --acl public-read || exit 2
+    if [ -z "$PRIVATE_BACKUP" ]; then
+      PRIVATE_BACKUP=false
+    fi
+
+    if [ $PRIVATE_BACKUP ]; then
+      cat dump.backup | aws $AWS_ARGS s3 cp - s3://$S3_BUCKET/$S3_PATH/$S3_FILENAME.backup || exit 2
+    else
+      cat dump.backup | aws $AWS_ARGS s3 cp - s3://$S3_BUCKET/$S3_PATH/$S3_FILENAME.backup --acl public-read || exit 2
+    fi
 
     echo "Snapshot uploaded successfully, removing local file"
     rm dump.backup
