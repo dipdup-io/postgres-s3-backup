@@ -57,11 +57,19 @@ case "${PG_BACKUP_ACTION:-dump}" in
     echo "Snapshotting $POSTGRES_DB database"
     pg_dump -Fc $POSTGRES_HOST_OPTS $POSTGRES_DB > dump.backup
 
-    echo "Rotating old snapshot"
-    aws $AWS_ARGS s3 cp s3://$S3_BUCKET/$S3_PATH/$S3_FILENAME.backup s3://$S3_BUCKET/$S3_PATH/$S3_FILENAME.old.backup --acl public-read || true
+    if [ "${PRIVATE_BACKUP}" == "true" ] || [ "${PRIVATE_BACKUP}" == "1"  ]; then
+      echo "Rotating old snapshot"
+      aws $AWS_ARGS s3 cp s3://$S3_BUCKET/$S3_PATH/$S3_FILENAME.backup s3://$S3_BUCKET/$S3_PATH/$S3_FILENAME.old.backup --acl private || true
 
-    echo "Uploading fresh snapshot to $S3_BUCKET/$S3_PATH/$S3_FILENAME"
-    cat dump.backup | aws $AWS_ARGS s3 cp - s3://$S3_BUCKET/$S3_PATH/$S3_FILENAME.backup --acl public-read || exit 2
+      echo "Uploading fresh private snapshot to $S3_BUCKET/$S3_PATH/$S3_FILENAME"
+      cat dump.backup | aws $AWS_ARGS s3 cp - s3://$S3_BUCKET/$S3_PATH/$S3_FILENAME.backup --acl private || exit 2
+    else
+      echo "Rotating old snapshot"
+      aws $AWS_ARGS s3 cp s3://$S3_BUCKET/$S3_PATH/$S3_FILENAME.backup s3://$S3_BUCKET/$S3_PATH/$S3_FILENAME.old.backup --acl public-read || true
+
+      echo "Uploading fresh public snapshot to $S3_BUCKET/$S3_PATH/$S3_FILENAME"
+      cat dump.backup | aws $AWS_ARGS s3 cp - s3://$S3_BUCKET/$S3_PATH/$S3_FILENAME.backup --acl public-read || exit 2
+    fi
 
     echo "Snapshot uploaded successfully, removing local file"
     rm dump.backup
