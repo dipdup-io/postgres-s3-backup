@@ -56,19 +56,20 @@ case "${PG_BACKUP_ACTION:-dump}" in
     # TODO: check if database is fresh
     echo "Snapshotting $POSTGRES_DB database"
     pg_dump -Fc $POSTGRES_HOST_OPTS $POSTGRES_DB > dump.backup
+    aws configure set default.s3.multipart_chunksize 16MB
 
     if [ "${PRIVATE_BACKUP}" == "true" ] || [ "${PRIVATE_BACKUP}" == "1"  ]; then
       echo "Rotating old snapshot"
       aws $AWS_ARGS s3 cp s3://$S3_BUCKET/$S3_PATH/$S3_FILENAME.backup s3://$S3_BUCKET/$S3_PATH/$S3_FILENAME.old.backup --acl private || true
 
       echo "Uploading fresh private snapshot to $S3_BUCKET/$S3_PATH/$S3_FILENAME"
-      cat dump.backup | aws $AWS_ARGS s3 cp - s3://$S3_BUCKET/$S3_PATH/$S3_FILENAME.backup --acl private --multipart-chunk-size 16777216 || exit 2
+      cat dump.backup | aws $AWS_ARGS s3 cp - s3://$S3_BUCKET/$S3_PATH/$S3_FILENAME.backup --acl private || exit 2
     else
       echo "Rotating old snapshot"
       aws $AWS_ARGS s3 cp s3://$S3_BUCKET/$S3_PATH/$S3_FILENAME.backup s3://$S3_BUCKET/$S3_PATH/$S3_FILENAME.old.backup --acl public-read || true
 
       echo "Uploading fresh public snapshot to $S3_BUCKET/$S3_PATH/$S3_FILENAME"
-      cat dump.backup | aws $AWS_ARGS s3 cp - s3://$S3_BUCKET/$S3_PATH/$S3_FILENAME.backup --multipart-chunk-size 16777216 --acl public-read || exit 2
+      cat dump.backup | aws $AWS_ARGS s3 cp - s3://$S3_BUCKET/$S3_PATH/$S3_FILENAME.backup --acl public-read || exit 2
     fi
 
     echo "Snapshot uploaded successfully, removing local file"
