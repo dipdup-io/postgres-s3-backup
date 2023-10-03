@@ -48,9 +48,10 @@ case "${PG_BACKUP_ACTION:-dump}" in
       AWS_ARGS="--endpoint-url ${S3_ENDPOINT}"
     fi
 
-    echo "Configuring ACCESS KEYS"
-    sed -i "s|replace_gs_access_key_id|$S3_ACCESS_KEY_ID|g" /root/.boto
-    sed -i "s|replace_gs_secret_access_key|$S3_SECRET_ACCESS_KEY|g" /root/.boto
+    # Google Cloud Auth
+    echo "Authenticating to Google Cloud..."
+    echo $S3_SECRET_ACCESS_KEY | base64 -d > /key.json
+    gcloud auth activate-service-account --key-file /key.json --project "$S3_ACCESS_KEY_ID" -q
 
     # env vars needed for aws tools
     export AWS_ACCESS_KEY_ID=$S3_ACCESS_KEY_ID
