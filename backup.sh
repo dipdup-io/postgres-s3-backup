@@ -58,6 +58,15 @@ case "${PG_BACKUP_ACTION:-dump}" in
     export AWS_SECRET_ACCESS_KEY=$S3_SECRET_ACCESS_KEY
     export AWS_DEFAULT_REGION=$S3_REGION
 
+    # Define a cleanup function
+    cleanup() {
+      echo "Cleaning up..."
+      rm -f dump.backup
+    }
+
+    # Set a trap to call the cleanup function when the script exits
+    trap cleanup EXIT
+
     # TODO: check if database is fresh
     echo "Snapshotting $POSTGRES_DB database"
     pg_dump -Fc $POSTGRES_HOST_OPTS $POSTGRES_DB > dump.backup
@@ -77,7 +86,6 @@ case "${PG_BACKUP_ACTION:-dump}" in
     fi
 
     echo "Snapshot uploaded successfully, removing local file"
-    rm dump.backup
 
     if [ ! -z "$HEARTBEAT_URI" ]; then
       echo "Sending heartbeat signal"
