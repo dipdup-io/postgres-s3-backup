@@ -1,11 +1,20 @@
 FROM alpine:3.15
 
 RUN apk update \
-    && apk --no-cache add dumb-init postgresql-client curl  python which bash
+    && apk --no-cache add dumb-init postgresql-client curl python3
 
-RUN curl -sSL https://sdk.cloud.google.com | bash
+RUN curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-396.0.0-linux-x86_64.tar.gz
 
-ENV PATH $PATH:/root/google-cloud-sdk/bin
+# ARM
+# RUN curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-396.0.0-linux-arm.tar.gz
+
+RUN tar -xf google-cloud-cli-396.0.0-linux-x86_64.tar.gz
+
+RUN ./google-cloud-sdk/install.sh --usage-reporting false -q
+
+RUN rm google-cloud-cli-396.0.0-linux-x86_64.tar.gz
+
+ENV PATH $PATH:/google-cloud-sdk/bin/
 
 ADD boto.config /root/.boto
 
