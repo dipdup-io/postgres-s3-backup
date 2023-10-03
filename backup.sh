@@ -70,10 +70,10 @@ case "${PG_BACKUP_ACTION:-dump}" in
       cat dump.backup | gsutil cp - gs://$S3_BUCKET/$S3_PATH/$S3_FILENAME.backup || exit 2
     else
       echo "Rotating old snapshot"
-      gsutil cp  gs://$S3_BUCKET/$S3_PATH/$S3_FILENAME.backup gs://$S3_BUCKET/$S3_PATH/$S3_FILENAME.old.backup -a public-read || true
+      gsutil cp -a public-read gs://$S3_BUCKET/$S3_PATH/$S3_FILENAME.backup gs://$S3_BUCKET/$S3_PATH/$S3_FILENAME.old.backup || true
 
       echo "Uploading fresh public snapshot to $S3_BUCKET/$S3_PATH/$S3_FILENAME"
-      cat dump.backup | gsutil cp - gs://$S3_BUCKET/$S3_PATH/$S3_FILENAME.backup -a public-read || exit 2
+      cat dump.backup | gsutil cp -a public-read - gs://$S3_BUCKET/$S3_PATH/$S3_FILENAME.backup || exit 2
     fi
 
     echo "Snapshot uploaded successfully, removing local file"
