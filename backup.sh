@@ -86,6 +86,7 @@ case "${PG_BACKUP_ACTION:-dump}" in
     fi
 
     echo "Snapshot uploaded successfully, removing local file"
+    rm dump.backup
 
     if [ ! -z "$HEARTBEAT_URI" ]; then
       echo "Sending heartbeat signal"
