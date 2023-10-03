@@ -1,7 +1,13 @@
-FROM google/cloud-sdk:448.0.0-alpine
+FROM alpine:3.15
 
 RUN apk update \
     && apk --no-cache add dumb-init postgresql-client curl
+
+RUN curl -sSL https://sdk.cloud.google.com | bash
+
+ENV PATH $PATH:/root/google-cloud-sdk/bin
+
+ADD boto.config /root/.boto
 
 RUN curl -L https://github.com/odise/go-cron/releases/download/v0.0.7/go-cron-linux.gz | zcat > /usr/local/bin/go-cron && chmod +x /usr/local/bin/go-cron
 
