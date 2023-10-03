@@ -1,7 +1,7 @@
 FROM alpine:3.15
 
 RUN apk update \
-    && apk --no-cache add dumb-init postgresql-client curl
+    && apk --no-cache add dumb-init postgresql-client curl  python which bash
 
 RUN curl -sSL https://sdk.cloud.google.com | bash
 
