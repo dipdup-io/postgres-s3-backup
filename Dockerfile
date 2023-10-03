@@ -1,4 +1,4 @@
-FROM google/cloud-sdk:a448.0.0-alpine
+FROM google/cloud-sdk:448.0.0-alpine
 
 RUN apk update \
     && apk --no-cache add dumb-init postgresql-client curl
