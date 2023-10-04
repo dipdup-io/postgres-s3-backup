@@ -1,7 +1,7 @@
 FROM alpine:3.15
 
  RUN apk add --update \
- python \
+ python3 \
  curl \
  which \
  bash
