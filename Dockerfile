@@ -1,4 +1,14 @@
-FROM google/cloud-sdk:alpine
+FROM alpine:3.15
+
+ RUN apk add --update \
+ python \
+ curl \
+ which \
+ bash
+
+ RUN curl -sSL https://sdk.cloud.google.com | bash
+
+ ENV PATH $PATH:/root/google-cloud-sdk/bin
 
 RUN apk update \
     && apk --no-cache add dumb-init postgresql-client curl
