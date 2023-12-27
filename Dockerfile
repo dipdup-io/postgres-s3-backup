@@ -1,4 +1,4 @@
-FROM alpine:3.15
+FROM alpine:3.18
 
  RUN apk add --update \
  python3 \
@@ -11,7 +11,7 @@ FROM alpine:3.15
  ENV PATH $PATH:/root/google-cloud-sdk/bin
 
 RUN apk update \
-    && apk --no-cache add dumb-init postgresql-client curl
+    && apk --no-cache add dumb-init postgresql15-client curl
 
 RUN curl -L https://github.com/odise/go-cron/releases/download/v0.0.7/go-cron-linux.gz | zcat > /usr/local/bin/go-cron && chmod +x /usr/local/bin/go-cron
 
