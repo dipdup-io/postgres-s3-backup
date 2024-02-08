@@ -100,8 +100,8 @@ case "${PG_BACKUP_ACTION:-dump}" in
     fi
 
     echo "Turning off autovacuum"
-    psql $POSTGRES_HOST_OPTS -c "ALTER SYSTEM SET autovacuum = off;"
-    psql $POSTGRES_HOST_OPTS -c "SELECT pg_reload_conf;"
+    psql -h $POSTGRES_HOST -p $POSTGRES_PORT -U $POSTGRES_USER -c "ALTER SYSTEM SET autovacuum = off;"
+    psql -h $POSTGRES_HOST -p $POSTGRES_PORT -U $POSTGRES_USER -c "SELECT pg_reload_conf;"
 
     echo "Downloading latest snapshot from $PG_BACKUP_FILE"
     curl -o dump.backup $PG_BACKUP_FILE
@@ -110,7 +110,7 @@ case "${PG_BACKUP_ACTION:-dump}" in
     pg_restore -v -d $POSTGRES_DB $POSTGRES_HOST_OPTS dump.backup
 
     echo "Re-enable autovacuum"
-    psql $POSTGRES_HOST_OPTS -c "ALTER SYSTEM RESET autovacuum;"
-    psql $POSTGRES_HOST_OPTS -c "SELECT pg_reload_conf;"
+    psql -h $POSTGRES_HOST -p $POSTGRES_PORT -U $POSTGRES_USER -c "ALTER SYSTEM RESET autovacuum;"
+    psql -h $POSTGRES_HOST -p $POSTGRES_PORT -U $POSTGRES_USER -c "SELECT pg_reload_conf;"
     ;;
 esac
