@@ -13,7 +13,7 @@ fi
 
 # env vars needed for pg_dump
 export PGPASSWORD=$POSTGRES_PASSWORD
-POSTGRES_HOST_OPTS="-h $POSTGRES_HOST -p $POSTGRES_PORT -U $POSTGRES_USER $POSTGRES_EXTRA_OPTS"
+#POSTGRES_HOST_OPTS="-h $POSTGRES_HOST -p $POSTGRES_PORT -U $POSTGRES_USER $POSTGRES_EXTRA_OPTS"
 
 case "${PG_BACKUP_ACTION:-dump}" in
   dump)
@@ -55,7 +55,7 @@ case "${PG_BACKUP_ACTION:-dump}" in
 
     # TODO: check if database is fresh
     echo "Snapshotting $POSTGRES_DB database"
-    pg_dump -Fc $POSTGRES_HOST_OPTS $POSTGRES_DB -f dump.backup
+    pg_dump -U $POSTGRES_USER -h $POSTGRES_HOST -p $POSTGRES_PORT -d $POSTGRES_DB -Fc -f dump.backup
     aws configure set default.s3.multipart_chunksize 16MB
 
     if [ "${PRIVATE_BACKUP}" == "true" ] || [ "${PRIVATE_BACKUP}" == "1"  ]; then
