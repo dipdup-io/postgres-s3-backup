@@ -55,7 +55,7 @@ case "${PG_BACKUP_ACTION:-dump}" in
 
     # TODO: check if database is fresh
     echo "Snapshotting $POSTGRES_DB database"
-    pg_dump -Fc $POSTGRES_HOST_OPTS $POSTGRES_DB > dump.backup
+    pg_dump -Fc $POSTGRES_HOST_OPTS $POSTGRES_DB -f dump.backup
     aws configure set default.s3.multipart_chunksize 16MB
 
     if [ "${PRIVATE_BACKUP}" == "true" ] || [ "${PRIVATE_BACKUP}" == "1"  ]; then
