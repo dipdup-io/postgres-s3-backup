@@ -86,6 +86,29 @@ case "${PG_BACKUP_ACTION:-dump}" in
       exit 1
     fi
 
+    if [ "${PRIVATE_BACKUP}" == "true" ] || [ "${PRIVATE_BACKUP}" == "1" ]; then
+      if [ -z "${S3_ACCESS_KEY_ID}" ]; then
+        echo "Please set S3_ACCESS_KEY_ID for private backup restore"
+        exit 1
+      fi
+
+      if [ -z "${S3_SECRET_ACCESS_KEY}" ]; then
+        echo "Please set S3_SECRET_ACCESS_KEY for private backup restore"
+        exit 1
+      fi
+
+      if [ -z "${S3_ENDPOINT}" ]; then
+        AWS_ARGS=""
+      else
+        AWS_ARGS="--endpoint-url ${S3_ENDPOINT}"
+      fi
+
+      # env vars needed for aws tools
+      export AWS_ACCESS_KEY_ID=$S3_ACCESS_KEY_ID
+      export AWS_SECRET_ACCESS_KEY=$S3_SECRET_ACCESS_KEY
+      export AWS_DEFAULT_REGION=$S3_REGION
+    fi
+
     echo "Downloading latest snapshot from $PG_BACKUP_FILE"
     if [ "${PRIVATE_BACKUP}" == "true" ] || [ "${PRIVATE_BACKUP}" == "1" ]; then
       aws $AWS_ARGS s3 cp s3://$S3_BUCKET/$S3_PATH/$S3_FILENAME.backup dump.backup || true 
