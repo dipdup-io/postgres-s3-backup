@@ -87,7 +87,11 @@ case "${PG_BACKUP_ACTION:-dump}" in
     fi
 
     echo "Downloading latest snapshot from $PG_BACKUP_FILE"
-    curl -o dump.backup $PG_BACKUP_FILE
+    if [ "${PRIVATE_BACKUP}" == "true" ] || [ "${PRIVATE_BACKUP}" == "1" ]; then
+      aws $AWS_ARGS s3 cp s3://$S3_BUCKET/$S3_PATH/$S3_FILENAME.backup dump.backup || true 
+    else
+      curl -o dump.backup $PG_BACKUP_FILE
+    fi
 
     echo "Restoring $POSTGRES_DB database"
     pg_restore -v -d $POSTGRES_DB $POSTGRES_HOST_OPTS dump.backup
