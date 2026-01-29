@@ -90,6 +90,12 @@ case "${PG_BACKUP_ACTION:-dump}" in
     curl -o dump.backup $PG_BACKUP_FILE
 
     echo "Restoring $POSTGRES_DB database"
-    pg_restore -v -d $POSTGRES_DB $POSTGRES_HOST_OPTS dump.backup
+    #pg_restore -v -d $POSTGRES_DB $POSTGRES_HOST_OPTS dump.backup
+    pg_restore \
+    -h "$POSTGRES_HOST" \
+    -p "$POSTGRES_PORT" \
+    -U "$POSTGRES_USER" \
+    -d "$POSTGRES_DB" \
+    -v $POSTGRES_HOST_OPTS dump.backup
     ;;
 esac
