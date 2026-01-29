@@ -96,6 +96,9 @@ case "${PG_BACKUP_ACTION:-dump}" in
     -p "$POSTGRES_PORT" \
     -U "$POSTGRES_USER" \
     -d "$POSTGRES_DB" \
-    -v $POSTGRES_HOST_OPTS dump.backup
+    -v $POSTGRES_HOST_OPTS \
+    --exclude-schema=_timescaledb_catalog \
+    --exclude-schema=_timescaledb_config \
+    dump.backup
     ;;
 esac
