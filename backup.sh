@@ -90,15 +90,19 @@ case "${PG_BACKUP_ACTION:-dump}" in
     curl -o dump.backup $PG_BACKUP_FILE
 
     echo "Restoring $POSTGRES_DB database"
-    #pg_restore -v -d $POSTGRES_DB $POSTGRES_HOST_OPTS dump.backup
+
+    psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" \
+      -c "CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE; SELECT timescaledb_pre_restore();"
+
     pg_restore \
     -h "$POSTGRES_HOST" \
     -p "$POSTGRES_PORT" \
     -U "$POSTGRES_USER" \
     -d "$POSTGRES_DB" \
-    -v $POSTGRES_HOST_OPTS \
-    --exclude-schema=_timescaledb_catalog \
-    --exclude-schema=_timescaledb_config \
-    dump.backup
+    -v \
+    dump.backup || true
+
+    psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" \
+      -c "SELECT timescaledb_post_restore();"
     ;;
 esac
